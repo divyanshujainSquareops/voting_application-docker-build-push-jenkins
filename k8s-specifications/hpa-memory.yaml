@@ -1,0 +1,17 @@
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ram-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: vote-deployment
+    apiVersion: apps/v1
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: memory
+      targetAverageUtilization: 50
