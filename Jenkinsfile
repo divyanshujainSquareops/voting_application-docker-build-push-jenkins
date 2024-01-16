@@ -9,6 +9,12 @@ pipeline {
                 }
             }
         }
+        stage('Build and Push Docker Images') {
+            steps {
+                script {
+                    sh "git clone https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git"
+                }
+            }
 
         
     }
