@@ -2,22 +2,36 @@ pipeline {
     agent any
 
     environment {
-        REPO_URL = 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
-        CREDENTIALS_ID = 'git_hub'
+        DOCKER_HUB_REPO = 'divyanshujain11'
+        COMPOSE_FILE_NAME = 'docker-compose.yml'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    dir("${HOME}") {
-                        checkout([$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: "${CREDENTIALS_ID}", url: "${REPO_URL}"]]])
-                    }
-                }
+                git branch: 'main', credentialsId: 'git_hub', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
             }
         }
 
-        // Add more stages as needed
+        stage('Build and Push Docker Images') {
+            steps {
+                script {
+                    // Assuming docker-compose file is in the root directory
+                    sh "docker-compose -f ./${COMPOSE_FILE_NAME} build"
 
+                    // // Log in to Docker Hub
+                    // withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
+                    //     // Push each image with the new tag
+                    //     sh "docker tag voting-app-worker ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
+                    //     sh "docker tag voting-app-result ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
+                    //     sh "docker tag voting-app-vote ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
+                        
+                    //     sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
+                    //     sh "docker push ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
+                    //     sh "docker push ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
+                    // }
+                }
+            }
+        }
     }
 }
