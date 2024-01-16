@@ -25,12 +25,12 @@ pipeline {
                     sh "docker tag workspace_result ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
                     sh "docker tag workspace_vote ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
                     
-                   docker.withRegistry( '', registryCredential )  {
                         // Push only the new images
+                        sh "docker login -u divyanshujain11 -p Deepu@123#"
                         sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
                         sh "docker push ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
                         sh "docker push ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
-                    }
+                    
                 }
             }
         }
