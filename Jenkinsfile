@@ -14,11 +14,6 @@ pipeline {
             }
         }
     }
-stage('Push image') {
-        withDockerRegistry([ credentialsId: "dockerhubaccount", url: "" ]) {
-        dockerImage.push()
-        }
-    }
 
         stage('Build_and_Push_Docker_Images') {
             steps {
