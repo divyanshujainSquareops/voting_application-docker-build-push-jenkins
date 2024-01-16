@@ -13,13 +13,12 @@ pipeline {
                 git branch: 'main', credentialsId: 'git_hub', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
             }
         }
-    }
 
         stage('Login to Docker Hub') {
             steps {
                 script {
                     sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'                		
-	                echo 'Login Completed'
+                    echo 'Login Completed'
                 }
             }
         }
@@ -40,4 +39,6 @@ pipeline {
         //             sh "docker push ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
         //         }
         //     }
+        // }
+    }
 }
