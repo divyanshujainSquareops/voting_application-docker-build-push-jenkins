@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     // Assuming docker-compose file is in the root directory
-                    sh "docker-compose -f ./${COMPOSE_FILE_NAME} build"
+                    sh "sudo docker-compose -f ./${COMPOSE_FILE_NAME} build"
 
                     // // Log in to Docker Hub
                     // withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
