@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub') 
+        registryCredential = 'dockerhub' 
         DOCKER_HUB_REPO = 'divyanshujain11'
         COMPOSE_FILE_NAME = 'docker-compose.yml'
     }
@@ -25,7 +25,7 @@ pipeline {
                     sh "docker tag workspace_result ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
                     sh "docker tag workspace_vote ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
                     
-                    withDockerRegistry([credentialsId: 'dockerhub', url:""]) {
+                   docker.withRegistry( '', registryCredential )  {
                         // Push only the new images
                         sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
                         sh "docker push ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
