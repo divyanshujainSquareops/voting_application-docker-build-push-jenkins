@@ -30,6 +30,7 @@ pipeline {
                         sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
                         sh "docker push ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
                         sh "docker push ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
+                        sh "docker rmi -f $(sudo docker images -a -q)"
                     
                 }
             }
