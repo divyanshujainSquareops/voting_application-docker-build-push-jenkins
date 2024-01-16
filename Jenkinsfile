@@ -13,32 +13,30 @@ pipeline {
                 git branch: 'main', credentialsId: 'git_hub', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
             }
         }
+    }
+stage('Push image') {
+        withDockerRegistry([ credentialsId: "dockerhubaccount", url: "" ]) {
+        dockerImage.push()
+        }
+    }
 
-        stage('Login to Docker Hub') {
+        stage('Build_and_Push_Docker_Images') {
             steps {
                 script {
-                    sh 'echo $DOCKERHUB_CREDENTIALS_USR'                		
-                    echo 'Login Completed'
+                    // Assuming docker-compose file is in the root directory
+                    sh "docker-compose -f ${COMPOSE_FILE_NAME} build"
+                    
+                    // Push each image with the new tag
+                    sh "docker tag workspace_worker ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
+                    sh "docker tag workspace_result ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
+                    sh "docker tag workspace_vote ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
+                    withDockerRegistry([credentialsId: 'dockerhub', url: '']) {
+                        // Push only the new images
+                    sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
+                    sh "docker push ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
+                    sh "docker push ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
+                    }
                 }
             }
         }
-
-        // stage('Build_and_Push_Docker_Images') {
-        //     steps {
-        //         script {
-        //             // Assuming docker-compose file is in the root directory
-        //             sh "docker-compose -f ${COMPOSE_FILE_NAME} build"
-                    
-        //             // Push each image with the new tag
-        //             sh "docker tag workspace_worker ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
-        //             sh "docker tag workspace_result ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
-        //             sh "docker tag workspace_vote ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
-                    
-        //             sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
-        //             sh "docker push ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
-        //             sh "docker push ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
-        //         }
-        //     }
-        // }
-    }
 }
