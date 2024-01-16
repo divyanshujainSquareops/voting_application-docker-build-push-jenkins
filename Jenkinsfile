@@ -13,7 +13,6 @@ pipeline {
                 git branch: 'main', credentialsId: 'git_hub', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
             }
         }
-    }
 
         stage('Build_and_Push_Docker_Images') {
             steps {
@@ -25,13 +24,15 @@ pipeline {
                     sh "docker tag workspace_worker ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
                     sh "docker tag workspace_result ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
                     sh "docker tag workspace_vote ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
+
                     withDockerRegistry([credentialsId: 'dockerhub', url: '']) {
                         // Push only the new images
-                    sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
-                    sh "docker push ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
-                    sh "docker push ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
+                        sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
+                        sh "docker push ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
+                        sh "docker push ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
                     }
                 }
             }
         }
+    }
 }
