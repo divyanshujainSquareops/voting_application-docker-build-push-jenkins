@@ -4,18 +4,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                dir('~/') {
+                script {
+                    // Clone the GitHub repository
                     git branch: 'main', credentialsId: 'git_hub', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
                 }
             }
         }
-        stage('Build and Push Docker Images') {
-            steps {
-                script {
-                    sh "git clone https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git"
-                }
-            }
 
-        
+        // Add more stages as needed
+
     }
 }
