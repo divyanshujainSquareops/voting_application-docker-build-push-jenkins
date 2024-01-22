@@ -28,15 +28,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
-                echo "clone complete"
+                git branch: 'main', credentialsId: 'git_hub', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                
             }
         }
 
         stage('Build_and_Push_Docker_Images') {
             steps {
                 script {
-                    // // Assuming docker-compose file is in the root directory
+                    // Assuming docker-compose file is in the root directory
                     // sh "docker-compose -f ${COMPOSE_FILE_NAME} build"
                     
                     // // Push each image with the new tag
