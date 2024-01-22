@@ -22,7 +22,6 @@ spec:
     environment {
         registryCredential = 'dockerhub' 
         DOCKER_HUB_REPO = 'divyanshujain11'
-        IMAGE_TAG = "${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
     }
 
     stages {
@@ -42,13 +41,13 @@ spec:
                 script {
                     container('kaniko') {
                         // Build and push Docker image using Kaniko
-                        sh "/kaniko/executor --dockerfile ./result/Dockerfile --context \$(pwd) --destination ${IMAGE_TAG}"
-                        
+                        sh """/kaniko/executor --dockerfile ./result/Dockerfile --context \$(pwd) --destination ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} """
+
                         // Login to Docker Hub
                         sh "docker login -u divyanshujain11 -p Deepu@123#"
                         
                         // Push the image
-                        sh "docker push ${IMAGE_TAG}"
+                        sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
                         
                         // Remove local images
                         sh "docker rmi -f \$(docker images -a -q)"
