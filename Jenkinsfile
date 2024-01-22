@@ -25,6 +25,7 @@ spec:
         COMPOSE_FILE_NAME = 'docker-compose.yml'
     }
 
+    stages {
         stage('Clone in Kaniko Container') {
             steps {
                 script {
@@ -36,6 +37,6 @@ spec:
             }
         }
 
-    
-    
+
+    }
 }
