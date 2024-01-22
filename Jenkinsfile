@@ -41,10 +41,9 @@ spec:
                 container('kaniko')  {
                         script{
                                         sh '''
-                    /kaniko/executor --dockerfile result/Dockerfile \
+                    /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
                     --context=`pwd` \
-                    --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} \
-                    --skip-tls-verify 
+                    --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER} 
                 '''
                 echo "image build"
                     }
