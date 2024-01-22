@@ -38,30 +38,20 @@ spec:
                 }
             }
         }
-              stage('Add Docker Hub Credentials') {
-            steps {
-                container('kaniko') {
-                    script {
-                        // Run the commands to add Docker Hub credentials
-                        sh '''
-                            sudo mkdir -p /kaniko/.docker
-                            sudo ./config.sh
-                            sudo mv config.json /kaniko/.docker
-                        '''
-                        echo "Docker Hub credentials added"
-                    }
-                }
-            }
-        }
+             
         stage('Build and Push Docker Images') {
             steps {
                 container('kaniko')  {
                     script {
-                            sh '''
-                                /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
-                                --context=`pwd`/result \
-                                --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER} 
-                               '''
+                            sh """
+                        docker run \
+                            -v \${PWD}:/workspace \
+                            -v \${JENKINS_HOME}/secrets/docker-config.json:/kaniko/.docker/config.json \
+                            gcr.io/kaniko-project/executor:latest \
+                            --dockerfile /workspace/result/Dockerfile \
+                            --context /workspace/result \
+                            --destination ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}
+                    """
                 echo "image build"
                     }
                 }
