@@ -41,7 +41,9 @@ spec:
                 script {
                     container('kaniko') {
                         // Build and push Docker image using Kaniko
-                        sh """/kaniko/executor --dockerfile ./result/Dockerfile --context \$(pwd) --destination ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} """
+                        sh """
+                            /kaniko/executor --dockerfile ./result/Dockerfile --context "\$(pwd)" --destination "${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
+                        """
 
                         // Login to Docker Hub
                         sh "docker login -u divyanshujain11 -p Deepu@123#"
