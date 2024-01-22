@@ -28,8 +28,9 @@ spec:
         stage('Clone in Kaniko Container') {
             steps {
                 container('kaniko') {
-                   script  {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                   script {
+                        // Use the checkout step to clone the repository
+                        checkout([$class: 'GitSCM', branches: [[name: 'main']], userRemoteConfigs: [[url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git', credentialsId: 'github']]])
                         echo "Repository cloned inside Kaniko container"
                     }
                 }
@@ -39,13 +40,8 @@ spec:
         stage('Build and Push Docker Images') {
             steps {
                 container('kaniko')  {
-                        script{
-                                        sh '''
-                    /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
-                    --context=`pwd` \
-                    --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER} 
-                '''
-                echo "image build"
+                    script {
+                        sh "ls"
                     }
                 }
             }
