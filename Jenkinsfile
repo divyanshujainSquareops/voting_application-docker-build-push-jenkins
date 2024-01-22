@@ -6,15 +6,15 @@ pipeline {
 apiVersion: v1
 kind: Pod
 metadata:
-    name: kaniko
+  name: kaniko
 spec:
-    restartPolicy: Never
-    containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-      - /busybox/cat
-      tty: true
+  restartPolicy: Never
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+    - /busybox/cat
+    tty: true
 """
         }
     }
