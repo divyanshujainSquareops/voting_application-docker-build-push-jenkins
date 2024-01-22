@@ -25,12 +25,17 @@ spec:
         COMPOSE_FILE_NAME = 'docker-compose.yml'
     }
 
-    stages {
-        stage('Checkout') {
+        stage('Clone in Kaniko Container') {
             steps {
-                git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
-                echo "clone completed"
+                script {
+                    container('kaniko') {
+                        git branch: 'main', credentialsId: 'git_hub', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                        echo "Repository cloned inside Kaniko container"
+                    }
+                }
             }
         }
-    }
+
+    
+    
 }
