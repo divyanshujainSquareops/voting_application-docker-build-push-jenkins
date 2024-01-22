@@ -22,7 +22,7 @@ spec:
     environment {
         registryCredential = 'dockerhub' 
         DOCKER_HUB_REPO = 'divyanshujain11'
-        COMPOSE_FILE_NAME = 'docker-compose.yml'
+        IMAGE_TAG = "${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
     }
 
     stages {
@@ -30,18 +30,19 @@ spec:
             steps {
                 script {
                     container('kaniko') {
-                        git branch: 'main', credentialsId: 'git_hub', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
                         echo "Repository cloned inside Kaniko container"
                     }
                 }
             }
         }
-                stage('Build and Push Docker Images') {
+
+        stage('Build and Push Docker Images') {
             steps {
                 script {
-container('kaniko') {
+                    container('kaniko') {
                         // Build and push Docker image using Kaniko
-                        sh "/kaniko/executor --dockerfile /path/to/your/Dockerfile --context \$(pwd) --destination ${IMAGE_TAG}"
+                        sh "/kaniko/executor --dockerfile ./result/Dockerfile --context \$(pwd) --destination ${IMAGE_TAG}"
                         
                         // Login to Docker Hub
                         sh "docker login -u divyanshujain11 -p Deepu@123#"
@@ -55,7 +56,5 @@ container('kaniko') {
                 }
             }
         }
-
-
     }
 }
