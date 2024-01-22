@@ -22,6 +22,8 @@ spec:
     environment {
         registryCredential = 'dockerhub' 
         DOCKER_HUB_REPO = 'divyanshujain11'
+        DOCKER_LOGIN='divyanshujain11'
+        DOCKER_PASSWORD='Deepu@123#'
     }
 
     stages {
@@ -36,7 +38,21 @@ spec:
                 }
             }
         }
-
+              stage('Add Docker Hub Credentials') {
+            steps {
+                container('kaniko') {
+                    script {
+                        // Run the commands to add Docker Hub credentials
+                        sh '''
+                            mkdir -p /kaniko/.docker
+                            ./config.sh
+                            mv config.json /kaniko/.docker
+                        '''
+                        echo "Docker Hub credentials added"
+                    }
+                }
+            }
+        }
         stage('Build and Push Docker Images') {
             steps {
                 container('kaniko')  {
@@ -44,7 +60,7 @@ spec:
                             sh '''
                                 /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
                                 --context=`pwd`/result \
-                                --destination=votingapp-result:${BUILD_NUMBER} 
+                                --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER} 
                                '''
                 echo "image build"
                     }
