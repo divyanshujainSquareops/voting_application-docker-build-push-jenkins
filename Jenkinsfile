@@ -48,8 +48,8 @@ spec:
                             -v \${PWD}:/workspace \
                             -v \${JENKINS_HOME}/secrets/docker-config.json:/kaniko/.docker/config.json \
                             gcr.io/kaniko-project/executor:latest \
-                            --dockerfile /workspace/result/Dockerfile \
-                            --context /workspace/result \
+                            --dockerfile `pwd`/result/Dockerfile \
+                            --context `pwd`/result \
                             --destination ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}
                     """
                 echo "image build"
