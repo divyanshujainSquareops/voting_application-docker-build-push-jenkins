@@ -44,9 +44,9 @@ spec:
                     script {
                         // Run the commands to add Docker Hub credentials
                         sh '''
-                            mkdir -p /kaniko/.docker
-                            ./config.sh
-                            mv config.json /kaniko/.docker
+                            sudo mkdir -p /kaniko/.docker
+                            sudo ./config.sh
+                            sudo mv config.json /kaniko/.docker
                         '''
                         echo "Docker Hub credentials added"
                     }
