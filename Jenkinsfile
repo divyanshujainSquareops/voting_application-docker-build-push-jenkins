@@ -36,6 +36,28 @@ spec:
                 }
             }
         }
+                stage('Build and Push Docker Images') {
+            steps {
+                script {
+                    container('kaniko') {
+                        // Build images using Kaniko
+                        sh "cat ${COMPOSE_FILE_NAME} | /kaniko/executor --dockerfile - --context \$(pwd) --destination ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
+
+                        // Tag images
+                        sh "/kaniko/executor --cleanup --snapshotMode=time --destination ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
+
+                        // Login to Docker Hub
+                        sh "docker login -u divyanshujain11 -p Deepu@123#"
+
+                        // Push images
+                        sh "/kaniko/executor --cleanup --snapshotMode=time --destination ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
+
+                        // Remove local images
+                        sh "docker rmi -f \$(docker images -a -q)"
+                    }
+                }
+            }
+        }
 
 
     }
