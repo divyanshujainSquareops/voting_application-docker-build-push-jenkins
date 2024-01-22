@@ -44,8 +44,7 @@ spec:
                     /kaniko/executor --dockerfile result/Dockerfile \
                     --context=`pwd` \
                     --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} \
-                    --skip-tls-verify \
-                    --docker-config=/kaniko/.docker/config.json
+                    --skip-tls-verify 
                 '''
                 echo "image build"
                     }
