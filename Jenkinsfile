@@ -41,7 +41,12 @@ spec:
             steps {
                 container('kaniko')  {
                     script {
-                        sh "ls"
+                            sh '''
+                                /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
+                                --context=`pwd`/result \
+                                --destination=votingapp-result:${BUILD_NUMBER} 
+                               '''
+                echo "image build"
                     }
                 }
             }
