@@ -27,8 +27,8 @@ spec:
     stages {
         stage('Clone in Kaniko Container') {
             steps {
-                script {
-                    container('kaniko') {
+                container('kaniko') {
+                   script  {
                         git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
                         echo "Repository cloned inside Kaniko container"
                     }
@@ -38,8 +38,8 @@ spec:
 
         stage('Build and Push Docker Images') {
             steps {
-                script {
-                    container('kaniko') {
+                container('kaniko')  {
+                        script{
                                         sh '''
                     /kaniko/executor --dockerfile result/Dockerfile \
                     --context=`pwd` \
