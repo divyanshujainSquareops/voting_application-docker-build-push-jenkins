@@ -32,26 +32,5 @@ spec:
                 echo "clone completed"
             }
         }
-
-        stage('Build_and_Push_Docker_Images') {
-            steps {
-                script {
-                    // Assuming docker-compose file is in the root directory
-                    // sh "docker-compose -f ${COMPOSE_FILE_NAME} build"
-                    
-                    // // Push each image with the new tag
-                    // sh "docker tag workspace_worker ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
-                    // sh "docker tag workspace_result ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
-                    // sh "docker tag workspace_vote ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
-                    
-                    // // Push only the new images
-                    // sh "docker login -u divyanshujain11 -p Deepu@123#"
-                    // sh "docker push ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}"
-                    // sh "docker push ${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
-                    // sh "docker push ${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
-                    // sh "docker rmi -f \$(docker images -a -q)"
-                }
-            }
-        }
     }
 }
