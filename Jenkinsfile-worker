@@ -6,7 +6,7 @@ pipeline {
 apiVersion: v1
 kind: Pod
 metadata:
-    name: kaniko
+    name: kaniko-3
 spec:
     restartPolicy: Never
     containers:
