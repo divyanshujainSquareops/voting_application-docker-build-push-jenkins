@@ -32,17 +32,6 @@ spec:
     }
 
     stages {
-        stage('Clone in Kaniko Container') {
-            steps {
-                script {
-                    container('kaniko') {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
-                        echo "Repository cloned inside Kaniko container"
-                    }
-                }
-            }
-        }
-
         stage('Build and Push result Images') {
             steps {
                 script {
@@ -58,6 +47,7 @@ spec:
                 }
             }
         }
+        
         stage('Build and Push vote Images') {
             steps {
                 script {
@@ -73,14 +63,48 @@ spec:
                 }
             }
         }
-        agent {
+        
+        stage('Build and Push seed Images') {
+            steps {
+                script {
+                    container('kaniko-2') {
+                        // Build and push Docker image using Kaniko
+                        sh '''
+                            /kaniko/executor --dockerfile `pwd`/seed-data/Dockerfile \
+                            --context=`pwd` \
+                            --destination=${DOCKER_HUB_REPO}/votingapp-seed-data:${BUILD_NUMBER} 
+                        '''
+                        echo "seed-data Image build completed"
+                    }
+                }
+            }
+        }
+        
+        stage('Build and Push worker Images') {
+            steps {
+                script {
+                    container('kaniko-2') {
+                        // Build and push Docker image using Kaniko
+                        sh '''
+                            /kaniko/executor --dockerfile `pwd`/worker/Dockerfile \
+                            --context=`pwd` \
+                            --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
+                        '''
+                        echo "worker Image build completed"
+                    }
+                }
+            }
+        }
+    }
+    
+    agent {
         kubernetes {
-            label 'kaniko'
+            label 'kaniko-2'
             yaml """
 apiVersion: v1
 kind: Pod
 metadata:
-    name: kaniko
+    name: kaniko-2
 spec:
     restartPolicy: Never
     containers:
@@ -99,7 +123,8 @@ spec:
 """
         }
     }
-        
+
+    stages {
         stage('Build and Push seed Images') {
             steps {
                 script {
@@ -115,21 +140,21 @@ spec:
                 }
             }
         }
+        
         stage('Build and Push worker Images') {
-                steps {
-                    script {
-                container('kaniko-2') {
-                    echo "Before Kaniko build command"
-                    sh '''
-                        /kaniko/executor --dockerfile `pwd`/worker/Dockerfile \
-                        --context=`pwd` \
-                        --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
-                    '''
+            steps {
+                script {
+                    container('kaniko-2') {
+                        // Build and push Docker image using Kaniko
+                        sh '''
+                            /kaniko/executor --dockerfile `pwd`/worker/Dockerfile \
+                            --context=`pwd` \
+                            --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
+                        '''
+                        echo "worker Image build completed"
+                    }
                 }
             }
         }
-    }
-
-        
     }
 }
