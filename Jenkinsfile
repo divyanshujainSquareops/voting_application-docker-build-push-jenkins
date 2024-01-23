@@ -56,15 +56,11 @@ spec:
             steps {
                 script {
                     container('kaniko') {
-                // Copy Docker configuration file to the correct location
-                sh 'cp /kaniko/.docker/config.json /root/.docker/config.json'
-
                 // Build and push Docker image using Kaniko
                 sh '''
                     /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
-                    --context=`pwd` \
-                    --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} \
-                    --skip-tls-verify
+                    --context=`pwd`/result \
+                    --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} 
                 '''
                 echo "Image build completed"
                     }
