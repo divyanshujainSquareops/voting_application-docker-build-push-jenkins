@@ -15,6 +15,9 @@ spec:
       command:
       - /busybox/cat
       tty: true
+      volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker  
 """
         }
     }
@@ -35,37 +38,50 @@ spec:
                 }
             }
         }
-
-        stage('Add Docker Hub Credentials') {
+        
+        stage('list all files') {
             steps {
                 script {
                     container('kaniko') {
-                        // Use Jenkins credentials to set up Docker Hub credentials
-                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_LOGIN', passwordVariable: 'DOCKER_PASSWORD')]) {
-                            sh  '''
-                                echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$(echo -n "divyanshujain11:Deepu@123#" | base64)\"}}}" > /kaniko/.docker/config.json
-                            '''
-                            echo "Docker Hub credentials added"
-                        }
+                        sh "ls"
+                        sh "ls /kaniko/.docker"
                     }
                 }
             }
         }
 
-        stage('Build and Push Docker Images') {
-            steps {
-                script {
-                    container('kaniko') {
-                // Build and push Docker image using Kaniko
-                sh '''
-                    /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
-                    --context=`pwd`/result \
-                    --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER} 
-                '''
-                echo "Image build completed"
-                    }
-                }
-            }
-        }
+        // stage('Add Docker Hub Credentials') {
+        //     steps {
+        //         script {
+        //             container('kaniko') {
+        //                 // Use Jenkins credentials to set up Docker Hub credentials
+        //                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_LOGIN', passwordVariable: 'DOCKER_PASSWORD')]) {
+        //                     sh  '''
+        //                         echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$(echo -n "$DOCKER_LOGIN:$DOCKER_PASSWORD" | base64)\"}}}" > /kaniko/.docker/config.json
+        //                     '''
+        //                     echo "Docker Hub credentials added"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
+        // stage('Build and Push Docker Images') {
+        //     steps {
+        //         script {
+        //             container('kaniko') {
+        //                 // Build and push Docker image using Kaniko
+        //                 sh '''
+        //                     /kaniko/executor --dockerfile result/Dockerfile \
+        //                     --context=`pwd` \
+        //                     --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} \
+        //                     --skip-tls-verify \
+        //                     --docker-config=/kaniko/.docker/config.json
+        //                 '''
+        //                 echo "Image build completed"
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
