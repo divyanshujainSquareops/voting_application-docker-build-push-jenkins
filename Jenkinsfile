@@ -61,7 +61,7 @@ spec:
                     container('kaniko') {
                         // Build and push Docker image using Kaniko
                         sh '''
-                            /kaniko/executor --dockerfile /result/Dockerfile \
+                            /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
                             --context=`pwd`/result \
                             --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} 
                         '''
