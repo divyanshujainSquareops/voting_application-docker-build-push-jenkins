@@ -20,6 +20,7 @@ spec:
     }
 
     environment {
+        registryCredential = 'dockerhub' 
         DOCKER_HUB_REPO = 'divyanshujain11'
     }
 
@@ -51,22 +52,22 @@ spec:
             }
         }
 
-        // stage('Build and Push Docker Images') {
-        //     steps {
-        //         script {
-        //             container('kaniko') {
-        //                 // Build and push Docker image using Kaniko
-        //                 sh '''
-        //                     /kaniko/executor --dockerfile result/Dockerfile \
-        //                     --context=`pwd` \
-        //                     --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} \
-        //                     --skip-tls-verify \
-        //                     --docker-config=/kaniko/.docker/config.json
-        //                 '''
-        //                 echo "Image build completed"
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Build and Push Docker Images') {
+            steps {
+                script {
+                    container('kaniko') {
+                        // Build and push Docker image using Kaniko
+                        sh '''
+                            /kaniko/executor --dockerfile result/Dockerfile \
+                            --context=`pwd` \
+                            --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} \
+                            --skip-tls-verify \
+                            --docker-config=/kaniko/.docker/config.json
+                        '''
+                        echo "Image build completed"
+                    }
+                }
+            }
+        }
     }
 }
