@@ -47,13 +47,13 @@ spec:
             steps {
                 script {
                     container('kaniko') {
-                        // Build and push Docker image using Kaniko
+                        // Build and push Docker result image using Kaniko
                         sh '''
                             /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
                             --context=`pwd` \
                             --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER} 
                         '''
-                        echo "Image build completed"
+                        echo "result Image build completed"
                     }
                 }
             }
@@ -68,7 +68,7 @@ spec:
                             --context=`pwd` \
                             --destination=${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER} 
                         '''
-                        echo "Image build completed"
+                        echo "Image vote build completed"
                     }
                 }
             }
@@ -83,7 +83,7 @@ spec:
                             --context=`pwd` \
                             --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
                         '''
-                        echo "Image build completed"
+                        echo "worker Image build completed"
                     }
                 }
             }
@@ -94,11 +94,11 @@ spec:
                     container('kaniko') {
                         // Build and push Docker image using Kaniko
                         sh '''
-                            /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
+                            /kaniko/executor --dockerfile `pwd`/seed-data/Dockerfile \
                             --context=`pwd` \
-                            --destination=${DOCKER_HUB_REPO}/votingapp-seed:${BUILD_NUMBER} 
+                            --destination=${DOCKER_HUB_REPO}/votingapp-seed-data:${BUILD_NUMBER} 
                         '''
-                        echo "Image build completed"
+                        echo "seed-data Image build completed"
                     }
                 }
             }
