@@ -18,6 +18,10 @@ spec:
       volumeMounts:
       - name: kaniko-secret
         mountPath: /kaniko/.docker  
+    volumes:
+    - name: kaniko-secret
+      secret:
+        secretName: kaniko-secret
 """
         }
     }
