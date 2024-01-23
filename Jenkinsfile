@@ -62,7 +62,7 @@ spec:
                         // Build and push Docker image using Kaniko
                         sh '''
                             /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
-                            --context=`pwd`/result \
+                            --context=`pwd` \
                             --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER} 
                         '''
                         echo "Image build completed"
