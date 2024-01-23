@@ -20,42 +20,53 @@ spec:
     }
 
     environment {
-        registryCredential = 'dockerhub' 
         DOCKER_HUB_REPO = 'divyanshujain11'
-        DOCKER_LOGIN='divyanshujain11'
-        DOCKER_PASSWORD='Deepu@123#'
     }
 
     stages {
         stage('Clone in Kaniko Container') {
             steps {
-                container('kaniko') {
-                   script {
-                        // Use the checkout step to clone the repository
-                        checkout([$class: 'GitSCM', branches: [[name: 'main']], userRemoteConfigs: [[url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git', credentialsId: 'github']]])
+                script {
+                    container('kaniko') {
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
                         echo "Repository cloned inside Kaniko container"
                     }
                 }
             }
         }
-             
-        stage('Build and Push Docker Images') {
+
+        stage('Add Docker Hub Credentials') {
             steps {
-                container('kaniko')  {
-                    script {
-                            sh """
-                        docker run \
-                            -v \${PWD}:/workspace \
-                            -v \${JENKINS_HOME}/secrets/docker-config.json:/kaniko/.docker/config.json \
-                            gcr.io/kaniko-project/executor:latest \
-                            --dockerfile `pwd`/result/Dockerfile \
-                            --context `pwd`/result \
-                            --destination ${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER}
-                    """
-                echo "image build"
+                script {
+                    container('kaniko') {
+                        // Use Jenkins credentials to set up Docker Hub credentials
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_LOGIN', passwordVariable: 'DOCKER_PASSWORD')]) {
+                            sh  '''
+                                echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$(echo -n "$DOCKER_LOGIN:$DOCKER_PASSWORD" | base64)\"}}}" > /kaniko/.docker/config.json
+                            '''
+                            echo "Docker Hub credentials added"
+                        }
                     }
                 }
             }
         }
+
+        // stage('Build and Push Docker Images') {
+        //     steps {
+        //         script {
+        //             container('kaniko') {
+        //                 // Build and push Docker image using Kaniko
+        //                 sh '''
+        //                     /kaniko/executor --dockerfile result/Dockerfile \
+        //                     --context=`pwd` \
+        //                     --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} \
+        //                     --skip-tls-verify \
+        //                     --docker-config=/kaniko/.docker/config.json
+        //                 '''
+        //                 echo "Image build completed"
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
