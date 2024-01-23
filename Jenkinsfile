@@ -83,25 +83,27 @@ spec:
                         --context=`pwd` \
                         --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
                     '''
+                    sh 'echo "After Kaniko build command"'
+                    echo "worker Image build completed"
                 }
             }
         }
     }
 
-        // stage('Build and Push seed Images') {
-        //     steps {
-        //         script {
-        //             container('kaniko') {
-        //                 // Build and push Docker image using Kaniko
-        //                 sh '''
-        //                     /kaniko/executor --dockerfile `pwd`/seed-data/Dockerfile \
-        //                     --context=`pwd` \
-        //                     --destination=${DOCKER_HUB_REPO}/votingapp-seed-data:${BUILD_NUMBER} 
-        //                 '''
-        //                 echo "seed-data Image build completed"
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Build and Push seed Images') {
+            steps {
+                script {
+                    container('kaniko') {
+                        // Build and push Docker image using Kaniko
+                        sh '''
+                            /kaniko/executor --dockerfile `pwd`/seed-data/Dockerfile \
+                            --context=`pwd` \
+                            --destination=${DOCKER_HUB_REPO}/votingapp-seed-data:${BUILD_NUMBER} 
+                        '''
+                        echo "seed-data Image build completed"
+                    }
+                }
+            }
+        }
     }
 }
