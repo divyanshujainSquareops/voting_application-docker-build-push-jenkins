@@ -49,7 +49,7 @@ spec:
                     container('kaniko') {
                         sh "ls"
                         sh "ls /kaniko/.docker"
-                        sh "cat /kaniko/.docker/config.json
+                        sh "cat /kaniko/.docker/config.json"
                     }
                 }
             }
