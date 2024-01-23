@@ -17,6 +17,22 @@ spec:
       tty: true
       volumeMounts:
       - name: kaniko-secret
+        mountPath: /kaniko/.docker 
+    - name: kaniko-2
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+      - /busybox/cat
+      tty: true
+      volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker  
+    - name: kaniko-3
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+      - /busybox/cat
+      tty: true
+      volumeMounts:
+      - name: kaniko-secret
         mountPath: /kaniko/.docker  
     volumes:
     - name: kaniko-secret
@@ -42,7 +58,26 @@ spec:
                 }
             }
         }
-
+         stage('Clone in Kaniko Container') {
+            steps {
+                script {
+                    container('kaniko-2') {
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                        echo "Repository cloned inside Kaniko container"
+                    }
+                }
+            }
+        }
+         stage('Clone in Kaniko Container') {
+            steps {
+                script {
+                    container('kaniko-3') {
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                        echo "Repository cloned inside Kaniko container"
+                    }
+                }
+            }
+        }
         stage('Build and Push result Images') {
             steps {
                 script {
@@ -74,32 +109,6 @@ spec:
             }
         }
         stage('Build and Push seed Images') {
-             agent {
-        kubernetes {
-            label 'kaniko'
-            yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-    name: kaniko
-spec:
-    restartPolicy: Never
-    containers:
-    - name: kaniko-2
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-      - /busybox/cat
-      tty: true
-      volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker  
-    volumes:
-    - name: kaniko-secret
-      secret:
-        secretName: kaniko-secret
-"""
-        }
-    }
             steps {
                 script {
                     container('kaniko-2') {
@@ -115,32 +124,6 @@ spec:
             }
         }
         stage('Build and Push worker Images') {
-             agent {
-        kubernetes {
-            label 'kaniko'
-            yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-    name: kaniko
-spec:
-    restartPolicy: Never
-    containers:
-    - name: kaniko-3
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-      - /busybox/cat
-      tty: true
-      volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker  
-    volumes:
-    - name: kaniko-secret
-      secret:
-        secretName: kaniko-secret
-"""
-        }
-    }
                 steps {
                     script {
                 container('kaniko-3') {
