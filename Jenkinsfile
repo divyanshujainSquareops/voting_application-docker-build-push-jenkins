@@ -43,7 +43,7 @@ spec:
                         // Use Jenkins credentials to set up Docker Hub credentials
                         withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_LOGIN', passwordVariable: 'DOCKER_PASSWORD')]) {
                             sh  '''
-                                echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$(echo -n "$DOCKER_LOGIN:$DOCKER_PASSWORD" | base64)\"}}}" > /kaniko/.docker/config.json
+                                echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$(echo -n "divyanshujain11:Deepu@123#" | base64)\"}}}" > /kaniko/.docker/config.json
                             '''
                             echo "Docker Hub credentials added"
                         }
