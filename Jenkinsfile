@@ -63,9 +63,7 @@ spec:
                         sh '''
                             /kaniko/executor --dockerfile /result/Dockerfile \
                             --context=`pwd`/result \
-                            --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} \
-                            --skip-tls-verify \
-                            --docker-config=/kaniko/.docker/config.json
+                            --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} 
                         '''
                         echo "Image build completed"
                     }
