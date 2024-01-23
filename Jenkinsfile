@@ -88,7 +88,7 @@ spec:
                 }
             }
         }
-            stage('Build and Push worker Images') {
+        stage('Build and Push worker Images') {
                 steps {
                     script {
                 container('kaniko') {
@@ -98,8 +98,6 @@ spec:
                         --context=`pwd` \
                         --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
                     '''
-                    sh 'echo "After Kaniko build command"'
-                    echo "worker Image build completed"
                 }
             }
         }
