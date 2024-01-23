@@ -42,20 +42,8 @@ spec:
                 }
             }
         }
-        
-        stage('list all files') {
-            steps {
-                script {
-                    container('kaniko') {
-                        sh "ls"
-                        sh "ls /kaniko/.docker"
-                        sh "cat /kaniko/.docker/config.json"
-                    }
-                }
-            }
-        }
 
-        stage('Build and Push Docker Images') {
+        stage('Build and Push result Images') {
             steps {
                 script {
                     container('kaniko') {
@@ -64,6 +52,51 @@ spec:
                             /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
                             --context=`pwd` \
                             --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER} 
+                        '''
+                        echo "Image build completed"
+                    }
+                }
+            }
+        }
+        stage('Build and Push vote Images') {
+            steps {
+                script {
+                    container('kaniko') {
+                        // Build and push Docker image using Kaniko
+                        sh '''
+                            /kaniko/executor --dockerfile `pwd`/vote/Dockerfile \
+                            --context=`pwd` \
+                            --destination=${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER} 
+                        '''
+                        echo "Image build completed"
+                    }
+                }
+            }
+        }
+        stage('Build and Push worker Images') {
+            steps {
+                script {
+                    container('kaniko') {
+                        // Build and push Docker image using Kaniko
+                        sh '''
+                            /kaniko/executor --dockerfile `pwd`/worker/Dockerfile \
+                            --context=`pwd` \
+                            --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
+                        '''
+                        echo "Image build completed"
+                    }
+                }
+            }
+        }
+        stage('Build and Push seed Images') {
+            steps {
+                script {
+                    container('kaniko') {
+                        // Build and push Docker image using Kaniko
+                        sh '''
+                            /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
+                            --context=`pwd` \
+                            --destination=${DOCKER_HUB_REPO}/votingapp-seed:${BUILD_NUMBER} 
                         '''
                         echo "Image build completed"
                     }
