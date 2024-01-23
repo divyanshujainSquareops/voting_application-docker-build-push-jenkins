@@ -10,7 +10,7 @@ RUN apt-get update && \
 WORKDIR /usr/local/app
 
 # Install our requirements.txt
-COPY requirements.txt ./requirements.txt
+COPY /vote/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Define a stage specifically for development, where it'll watch for
@@ -24,7 +24,7 @@ CMD ["python", "app.py"]
 FROM base AS final
 
 # Copy our code from the current folder to the working directory inside the container
-COPY . .
+COPY ./vote/ .
 
 # Make port 80 available for links and/or publish
 EXPOSE 80
