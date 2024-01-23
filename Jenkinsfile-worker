@@ -32,6 +32,17 @@ spec:
     }
 
     stages {
+        stage('Clone in Kaniko Container') {
+            steps {
+                script {
+                    container('kaniko') {
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                        echo "Repository cloned inside Kaniko container"
+                    }
+                }
+            }
+        }
+
         stage('Build and Push result Images') {
             steps {
                 script {
@@ -47,7 +58,6 @@ spec:
                 }
             }
         }
-        
         stage('Build and Push vote Images') {
             steps {
                 script {
@@ -63,48 +73,15 @@ spec:
                 }
             }
         }
-        
         stage('Build and Push seed Images') {
-            steps {
-                script {
-                    container('kaniko-2') {
-                        // Build and push Docker image using Kaniko
-                        sh '''
-                            /kaniko/executor --dockerfile `pwd`/seed-data/Dockerfile \
-                            --context=`pwd` \
-                            --destination=${DOCKER_HUB_REPO}/votingapp-seed-data:${BUILD_NUMBER} 
-                        '''
-                        echo "seed-data Image build completed"
-                    }
-                }
-            }
-        }
-        
-        stage('Build and Push worker Images') {
-            steps {
-                script {
-                    container('kaniko-2') {
-                        // Build and push Docker image using Kaniko
-                        sh '''
-                            /kaniko/executor --dockerfile `pwd`/worker/Dockerfile \
-                            --context=`pwd` \
-                            --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
-                        '''
-                        echo "worker Image build completed"
-                    }
-                }
-            }
-        }
-    }
-    
-    agent {
+             agent {
         kubernetes {
-            label 'kaniko-2'
+            label 'kaniko'
             yaml """
 apiVersion: v1
 kind: Pod
 metadata:
-    name: kaniko-2
+    name: kaniko
 spec:
     restartPolicy: Never
     containers:
@@ -123,9 +100,6 @@ spec:
 """
         }
     }
-
-    stages {
-        stage('Build and Push seed Images') {
             steps {
                 script {
                     container('kaniko-2') {
@@ -140,21 +114,47 @@ spec:
                 }
             }
         }
-        
         stage('Build and Push worker Images') {
-            steps {
-                script {
-                    container('kaniko-2') {
-                        // Build and push Docker image using Kaniko
-                        sh '''
-                            /kaniko/executor --dockerfile `pwd`/worker/Dockerfile \
-                            --context=`pwd` \
-                            --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
-                        '''
-                        echo "worker Image build completed"
-                    }
+             agent {
+        kubernetes {
+            label 'kaniko'
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+    name: kaniko
+spec:
+    restartPolicy: Never
+    containers:
+    - name: kaniko-3
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+      - /busybox/cat
+      tty: true
+      volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker  
+    volumes:
+    - name: kaniko-secret
+      secret:
+        secretName: kaniko-secret
+"""
+        }
+    }
+                steps {
+                    script {
+                container('kaniko-3') {
+                    echo "Before Kaniko build command"
+                    sh '''
+                        /kaniko/executor --dockerfile `pwd`/worker/Dockerfile \
+                        --context=`pwd` \
+                        --destination=${DOCKER_HUB_REPO}/votingapp-worker:${BUILD_NUMBER} 
+                    '''
                 }
             }
         }
+    }
+
+        
     }
 }
