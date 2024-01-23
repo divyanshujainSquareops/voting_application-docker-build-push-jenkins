@@ -63,7 +63,7 @@ spec:
                         sh '''
                             /kaniko/executor --dockerfile `pwd`/result/Dockerfile \
                             --context=`pwd`/result \
-                            --destination=${DOCKER_HUB_REPO}/votingapp-resul:${BUILD_NUMBER} 
+                            --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER} 
                         '''
                         echo "Image build completed"
                     }
