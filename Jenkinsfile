@@ -11,33 +11,33 @@ spec:
     restartPolicy: Never
     volumes:
     - name: kaniko-secret
-        secret:
+      secret:
             secretName: kaniko-secret
     containers:
     - name: kaniko
-        image: gcr.io/kaniko-project/executor:debug
-        command:
+      image: gcr.io/kaniko-project/executor:debug
+      command:
         - /busybox/cat
-        tty: true
-        volumeMounts:
-        - name: kaniko-secret
-            mountPath: /kaniko/.docker
+      tty: true
+      volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
     - name: kaniko-2
-        image: gcr.io/kaniko-project/executor:debug
-        command:
+      image: gcr.io/kaniko-project/executor:debug
+      command:
         - /busybox/cat
-        tty: true
-        volumeMounts:
-        - name: kaniko-secret
-            mountPath: /kaniko/.docker
+      tty: true
+      volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
     - name: kaniko-3
-        image: gcr.io/kaniko-project/executor:debug
-        command:
+      image: gcr.io/kaniko-project/executor:debug
+      command:
         - /busybox/cat
-        tty: true
-        volumeMounts:
-        - name: kaniko-secret
-            mountPath: /kaniko/.docker
+      tty: true
+      volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
 """
         }
     }
