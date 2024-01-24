@@ -51,7 +51,7 @@ spec:
             steps {
                 script {
                     container('kaniko') {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
                         echo "Repository cloned inside Kaniko container"
                     }
                 }
@@ -62,7 +62,7 @@ spec:
             steps {
                 script {
                     container('kaniko-2') {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
                         echo "Repository cloned inside Kaniko container"
                     }
                 }
@@ -73,7 +73,7 @@ spec:
             steps {
                 script {
                     container('kaniko-3') {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
                         echo "Repository cloned inside Kaniko container"
                     }
                 }
