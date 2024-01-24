@@ -3,47 +3,46 @@ pipeline {
         kubernetes {
             label 'kaniko'
             yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-    name: kaniko
-spec:
-    restartPolicy: Never
-    volumes:
-    - name: kaniko-secret
-      secret:
-        secretName: kaniko-secret
-    containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-      - /busybox/cat
-      tty: true
-      volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker 
-    - name: kaniko-2
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-      - /busybox/cat
-      tty: true
-      volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker  
-    - name: kaniko-3
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-      - /busybox/cat
-      tty: true
-      volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker  
-"""
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                    name: kaniko
+                spec:
+                    restartPolicy: Never
+                    volumes:
+                    - name: kaniko-secret
+                    secret:
+                        secretName: kaniko-secret
+                    containers:
+                    - name: kaniko
+                    image: gcr.io/kaniko-project/executor:debug
+                    command:
+                    - /busybox/cat
+                    tty: true
+                    volumeMounts:
+                    - name: kaniko-secret
+                        mountPath: /kaniko/.docker 
+                    - name: kaniko-2
+                    image: gcr.io/kaniko-project/executor:debug
+                    command:
+                    - /busybox/cat
+                    tty: true
+                    volumeMounts:
+                    - name: kaniko-secret
+                        mountPath: /kaniko/.docker  
+                    - name: kaniko-3
+                    image: gcr.io/kaniko-project/executor:debug
+                    command:
+                    - /busybox/cat
+                    tty: true
+                    volumeMounts:
+                    - name: kaniko-secret
+                        mountPath: /kaniko/.docker  
+                """
         }
     }
 
     environment {
-        registryCredential = 'dockerhub' 
         DOCKER_HUB_REPO = 'divyanshujain11'
     }
 
@@ -51,7 +50,7 @@ spec:
         stage('Clone in Kaniko Container 1') {
             steps {
                 script {
-                    container('kaniko') {
+                    container('kaniko','kanico-2','kaniko-3') {
                         git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
                         echo "Repository cloned inside Kaniko container"
                     }
@@ -59,27 +58,27 @@ spec:
             }
         }
 
-        stage('Clone in Kaniko Container 2') {
-            steps {
-                script {
-                    container('kaniko-2') {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
-                        echo "Repository cloned inside Kaniko container"
-                    }
-                }
-            }
-        }
+        // stage('Clone in Kaniko Container 2') {
+        //     steps {
+        //         script {
+        //             container('kaniko-2') {
+        //                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+        //                 echo "Repository cloned inside Kaniko container"
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Clone in Kaniko Container 3') {
-            steps {
-                script {
-                    container('kaniko-3') {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
-                        echo "Repository cloned inside Kaniko container"
-                    }
-                }
-            }
-        }
+        // stage('Clone in Kaniko Container 3') {
+        //     steps {
+        //         script {
+        //             container('kaniko-3') {
+        //                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argoCd-jenkins.git'
+        //                 echo "Repository cloned inside Kaniko container"
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Build and Push result Images') {
             steps {
