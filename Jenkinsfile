@@ -174,7 +174,7 @@ spec:
 
                             ls -la
                             pwd
-                            git config --global --add safe.directory /home/jenkins/agent/workspace/helm-argocd
+                            git config --global --add safe.directory /home/jenkins/agent/workspace/Voting-app-CI-CD
                             git config --global user.email "divyanshu.jain@squareops.com"
                             git config --global user.name "Divyanshu jain"
                             git add .
