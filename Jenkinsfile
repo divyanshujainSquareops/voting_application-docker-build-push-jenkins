@@ -1,7 +1,6 @@
 pipeline {
     agent {
         kubernetes {
-            label 'kaniko'
             yaml """
 apiVersion: v1
 kind: Pod
@@ -127,5 +126,69 @@ spec:
                 }
             }
         }
+        stage('Helm Values Update and Push') {
+        agent {
+            kubernetes {
+                yaml """
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                    name: builder
+                spec:
+                  restartPolicy: Never
+                  volumes:
+                    - name: builder-storage
+                      emptyDir: {}
+                  containers:
+                  - name: builder
+                    image: squareops/jenkins-build-agent:v3
+                    securityContext:
+                      privileged: true
+                    volumeMounts:
+                      - name: builder-storage
+                        mountPath: /var/lib/docker
+                """
+            }
+        }
+        steps {
+            script {
+                container('builder') {
+                    // Clone Git repo with credentials
+                    git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git'
+                     withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
+                        sh '''
+                            cd ./worker/
+                            yq e -i '.image.tag = "'$BUILD_NUMBER'"' values.yaml
+                            cat values.yaml
+                            cd ..
+
+                            cd ./result/
+                            yq e -i '.image.tag = "'$BUILD_NUMBER'"' values.yaml
+                            cat values.yaml
+                            cd ..
+
+                            cd ./vote/
+                            yq e -i '.image.tag = "'$BUILD_NUMBER'"' values.yaml
+                            cat values.yaml
+                            cd ..
+
+                            ls -la
+                            pwd
+                            git config --global --add safe.directory /home/jenkins/agent/workspace/helm-argocd
+                            git config --global user.email "divyanshu.jain@squareops.com"
+                            git config --global user.name "Divyanshu jain"
+                            git add .
+                            git commit -m 'Docker Image version Update "'$JOB_NAME'"-"'$BUILD_NUMBER'"'
+                            git push https://${USER_NAME}:${PASSWORD}@github.com/divyanshujainSquareops/voting_application-helm-argocd.git main
+                        '''
+                    }
+                }
+            }
+        }
+
+        
     }
+    }
+
+    
 }
