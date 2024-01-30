@@ -52,7 +52,8 @@ spec:
                     container('kaniko') {
                         // git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
                         // echo "Repository cloned inside Kaniko container"
-                        echo 'Docker Image version Update "'$JOB_NAME'"-"'$BUILD_NUMBER-$BUILD_DATE'"'
+                        def BUILD_DATE = sh(script: 'date "+%Y%m%d%H%M%S"', returnStdout: true).trim()
+                        echo 'Docker Image version Update \"$JOB_NAME\"-\"$BUILD_NUMBER-$BUILD_DATE\"
                     }
                 }
             }
