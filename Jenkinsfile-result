@@ -111,7 +111,7 @@ spec:
                             git config --global user.email "divyanshu.jain@squareops.com"
                             git config --global user.name "Divyanshu jain"
                             git add .
-                            git commit -m "commit=\\\"\\\$JOB_NAME-\$BUILD_NUMBER-\$BUILD_DATE\\\""
+                            git commit -m "commit=\$JOB_NAME-\$BUILD_NUMBER-\$BUILD_DATE"
                             git push https://${USER_NAME}:${PASSWORD}@github.com/divyanshujainSquareops/voting_application-helm-argocd.git main
                         '''                      
                     }
