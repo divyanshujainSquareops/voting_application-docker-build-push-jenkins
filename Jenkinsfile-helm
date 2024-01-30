@@ -31,6 +31,7 @@ agent {
                 container('builder') {
                     // Clone Git repo with credentials
                     git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git'
+                    def BUILD_DATE = sh(script: 'date "+%Y%m%d%H%M%S"', returnStdout: true).trim()
                      withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
                         sh '''
                             cd ./worker/
@@ -55,8 +56,7 @@ agent {
                             git config --global user.name "Divyanshu jain"
                             git add .
                             echo "BUILD_DATE: $BUILD_DATE"
-                            git commit -m 'Docker Image version Update $JOB_NAME-$BUILD_NUMBER-$BUILD_DATE'
-
+                            git commit -m 'jenkins commit=${JOB_NAME}-${BUILD_NUMBER}-${BUILD_DATE}'
                             git push https://${USER_NAME}:${PASSWORD}@github.com/divyanshujainSquareops/voting_application-helm-argocd.git main
                         '''
                     }
