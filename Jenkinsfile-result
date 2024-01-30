@@ -46,27 +46,27 @@ spec:
     }
 
     stages {
-        stage('Clone in Kaniko Container') {
-            steps {
-                script {
-                    container('kaniko') {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
-                        echo "Repository cloned inside Kaniko container"
-                    }
-                }
-            }
-        }
-        stage('Build and Push result Images') {
-            steps {
-                script {
-                    container('kaniko') {
-                        // Build and push Docker result image using Kaniko
-                        sh "/kaniko/executor --dockerfile `pwd`/result/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
-                        echo "result Image build completed"
-                    }
-                }
-            }
-        }
+        // stage('Clone in Kaniko Container') {
+        //     steps {
+        //         script {
+        //             container('kaniko') {
+        //                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
+        //                 echo "Repository cloned inside Kaniko container"
+        //             }
+        //         }
+        //     }
+        // }
+        // stage('Build and Push result Images') {
+        //     steps {
+        //         script {
+        //             container('kaniko') {
+        //                 // Build and push Docker result image using Kaniko
+        //                 sh "/kaniko/executor --dockerfile `pwd`/result/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
+        //                 echo "result Image build completed"
+        //             }
+        //         }
+        //     }
+        // }
         stage('Helm Values Update and Push') {
           agent {
             kubernetes {
@@ -99,19 +99,19 @@ spec:
                     git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git'
                      withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
                         sh '''
-                            cd ./result/
-                            yq e -i '.image.tag = "'$BUILD_NUMBER'"' values.yaml
-                            cat values.yaml
-                            cd ..
+                            // cd ./result/
+                            // yq e -i '.image.tag = "'$BUILD_NUMBER'"' values.yaml
+                            // cat values.yaml
+                            // cd ..
 
-                            ls -la
-                            pwd
-                            git config --global --add safe.directory /home/jenkins/agent/workspace/${JOB_NAME}
-                            git config --global user.email "divyanshu.jain@squareops.com"
-                            git config --global user.name "Divyanshu jain"
-                            git add .
-                            git commit -m 'Docker Image version Update ${JOB_NAME}-${BUILD_NUMBER}-${BUILD_DATE}'
-                            git push https://${USER_NAME}:${PASSWORD}@github.com/divyanshujainSquareops/voting_application-helm-argocd.git main
+                            // ls -la
+                            // pwd
+                            // git config --global --add safe.directory /home/jenkins/agent/workspace/${JOB_NAME}
+                            // git config --global user.email "divyanshu.jain@squareops.com"
+                            // git config --global user.name "Divyanshu jain"
+                            // git add .
+                            echo 'Docker Image version Update "${JOB_NAME}"-"${BUILD_NUMBER}"-"${BUILD_DATE}"'
+                            // git push https://${USER_NAME}:${PASSWORD}@github.com/divyanshujainSquareops/voting_application-helm-argocd.git main
                         '''
                     }
                 }
