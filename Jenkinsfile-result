@@ -46,16 +46,17 @@ spec:
     }
 
     stages {
-        // stage('Clone in Kaniko Container') {
-        //     steps {
-        //         script {
-        //             container('kaniko') {
-        //                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
-        //                 echo "Repository cloned inside Kaniko container"
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Clone in Kaniko Container') {
+            steps {
+                script {
+                    container('kaniko') {
+                        // git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
+                        // echo "Repository cloned inside Kaniko container"
+                        echo 'Docker Image version Update "'$JOB_NAME'"-"'$BUILD_NUMBER-$BUILD_DATE'"'
+                    }
+                }
+            }
+        }
         // stage('Build and Push result Images') {
         //     steps {
         //         script {
@@ -67,45 +68,45 @@ spec:
         //         }
         //     }
         // }
-        stage('Helm Values Update and Push') {
-          agent {
-            kubernetes {
-                yaml """
-                apiVersion: v1
-                kind: Pod
-                metadata:
-                    name: builder
-                spec:
-                  restartPolicy: Never
-                  volumes:
-                    - name: builder-storage
-                      emptyDir: {}
-                  containers:
-                  - name: builder
-                    image: squareops/jenkins-build-agent:v3
-                    securityContext:
-                      privileged: true
-                    volumeMounts:
-                      - name: builder-storage
-                        mountPath: /var/lib/docker
-                """
-            }
-          }
-          steps {
-            script {
-                container('builder') {
-                    // Clone Git repo with credentials
-                    def BUILD_DATE = sh(script: 'date "+%Y%m%d%H%M%S"', returnStdout: true).trim()
-                    git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git'
-                     withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
-                        sh '''
+        // stage('Helm Values Update and Push') {
+        //   agent {
+        //     kubernetes {
+        //         yaml """
+        //         apiVersion: v1
+        //         kind: Pod
+        //         metadata:
+        //             name: builder
+        //         spec:
+        //           restartPolicy: Never
+        //           volumes:
+        //             - name: builder-storage
+        //               emptyDir: {}
+        //           containers:
+        //           - name: builder
+        //             image: squareops/jenkins-build-agent:v3
+        //             securityContext:
+        //               privileged: true
+        //             volumeMounts:
+        //               - name: builder-storage
+        //                 mountPath: /var/lib/docker
+        //         """
+        //     }
+        //   }
+        //   steps {
+        //     script {
+        //         container('builder') {
+        //             // Clone Git repo with credentials
+        //             def BUILD_DATE = sh(script: 'date "+%Y%m%d%H%M%S"', returnStdout: true).trim()
+        //             git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git'
+        //              withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
+        //                 sh '''
                             
-                            echo 'Docker Image version Update "${JOB_NAME}"-"${BUILD_NUMBER}"-"${BUILD_DATE}"'
-                        '''
-                    }
-                }
-            }
-          }
-        }
+        //                     echo 'Docker Image version Update "${JOB_NAME}"-"${BUILD_NUMBER}"-"${BUILD_DATE}"'
+        //                 '''
+        //             }
+        //         }
+        //     }
+        //   }
+        // }
     }
 }
