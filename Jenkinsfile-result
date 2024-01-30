@@ -46,27 +46,27 @@ spec:
     }
 
     stages {
-        stage('Clone in Kaniko Container') {
-            steps {
-                script {
-                    container('kaniko') {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
-                        echo "Repository cloned inside Kaniko container"
-                    }
-                }
-            }
-        }
-        stage('Build and Push result Images') {
-            steps {
-                script {
-                    container('kaniko') {
-                        // Build and push Docker result image using Kaniko
-                        sh "/kaniko/executor --dockerfile `pwd`/result/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
-                        echo "result Image build completed"
-                    }
-                }
-            }
-        }
+        // stage('Clone in Kaniko Container') {
+        //     steps {
+        //         script {
+        //             container('kaniko') {
+        //                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
+        //                 echo "Repository cloned inside Kaniko container"
+        //             }
+        //         }
+        //     }
+        // }
+        // stage('Build and Push result Images') {
+        //     steps {
+        //         script {
+        //             container('kaniko') {
+        //                 // Build and push Docker result image using Kaniko
+        //                 sh "/kaniko/executor --dockerfile `pwd`/result/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
+        //                 echo "result Image build completed"
+        //             }
+        //         }
+        //     }
+        // }
         stage('Helm Values Update and Push') {
           agent {
             kubernetes {
@@ -95,11 +95,13 @@ spec:
             script {
                 container('builder') {
                     // Clone Git repo with credentials
-                    def BUILD_DATE = sh(script: 'date "+%Y-%m-%d"', returnStdout: true).trim()
-                    echo "BUILD_DATE: ${BUILD_DATE}"
+                    //def BUILD_DATE = sh(script: 'date "+%Y-%m-%d"', returnStdout: true).trim()
+                   // echo "BUILD_DATE: ${BUILD_DATE}"
                     git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git'
                      withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
                         sh '''
+                            def BUILD_DATE = sh(script: 'date "+%Y-%m-%d"', returnStdout: true).trim()
+                            echo "BUILD_DATE: ${BUILD_DATE}"
                             cd ./result/
                             yq e -i '.image.tag = "'$BUILD_NUMBER'"' values.yaml
                             cat values.yaml
