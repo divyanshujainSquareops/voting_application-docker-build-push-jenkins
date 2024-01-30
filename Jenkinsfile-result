@@ -95,8 +95,8 @@ spec:
             script {
                 container('builder') {
                     // Clone Git repo with credentials
-                    //def BUILD_DATE = sh(script: 'date "+%Y-%m-%d"', returnStdout: true).trim()
-                   // echo "BUILD_DATE: ${BUILD_DATE}"
+                    
+                   
                     git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git'
                      withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
                         sh '''
