@@ -1,0 +1,71 @@
+pipeline {
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+    name: kaniko
+spec:
+    restartPolicy: Never
+    volumes:
+    - name: kaniko-secret
+      secret:
+            secretName: kaniko-secret
+    containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+        - /busybox/cat
+      tty: true
+      volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
+    - name: kaniko-2
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+        - /busybox/cat
+      tty: true
+      volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
+    - name: kaniko-3
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+        - /busybox/cat
+      tty: true
+      volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
+"""
+        }
+    }
+
+    environment {
+        DOCKER_HUB_REPO = 'divyanshujain11'
+    }
+
+    stages {
+        stage('Clone in Kaniko Container') {
+            steps {
+                script {
+                    container('kaniko') {
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
+                        echo "Repository cloned inside Kaniko container"
+                    }
+                }
+            }
+        }
+         stage('Build and Push vote Images') {
+            steps {
+                script {
+                    container('kaniko') {
+                        // Build and push Docker image using Kaniko
+                        sh "/kaniko/executor --dockerfile `pwd`/vote/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
+                        echo "Image vote build completed"
+                    }
+                }
+            }
+        }
+    }
+}
