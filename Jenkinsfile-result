@@ -43,6 +43,7 @@ spec:
 
     environment {
         DOCKER_HUB_REPO = 'divyanshujain11'
+        BUILD_DATE = sh(script: 'date "+%Y-%m-%d"', returnStdout: true).trim()
     }
 
     stages {
@@ -100,7 +101,6 @@ spec:
                     git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git'
                      withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
                         sh '''
-                            def BUILD_DATE = sh(script: 'date "+%Y-%m-%d"', returnStdout: true).trim()
                             echo "BUILD_DATE: ${BUILD_DATE}"
                             cd ./result/
                             yq e -i '.image.tag = "'$BUILD_NUMBER'"' values.yaml
