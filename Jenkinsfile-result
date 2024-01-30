@@ -47,27 +47,27 @@ spec:
     }
 
     stages {
-        // stage('Clone in Kaniko Container') {
-        //     steps {
-        //         script {
-        //             container('kaniko') {
-        //                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
-        //                 echo "Repository cloned inside Kaniko container"
-        //             }
-        //         }
-        //     }
-        // }
-        // stage('Build and Push result Images') {
-        //     steps {
-        //         script {
-        //             container('kaniko') {
-        //                 // Build and push Docker result image using Kaniko
-        //                 sh "/kaniko/executor --dockerfile `pwd`/result/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
-        //                 echo "result Image build completed"
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Clone in Kaniko Container') {
+            steps {
+                script {
+                    container('kaniko') {
+                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
+                        echo "Repository cloned inside Kaniko container"
+                    }
+                }
+            }
+        }
+        stage('Build and Push result Images') {
+            steps {
+                script {
+                    container('kaniko') {
+                        // Build and push Docker result image using Kaniko
+                        sh "/kaniko/executor --dockerfile `pwd`/result/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_REPO}/votingapp-result:${BUILD_NUMBER}"
+                        echo "result Image build completed"
+                    }
+                }
+            }
+        }
         stage('Helm Values Update and Push') {
           agent {
             kubernetes {
