@@ -1,125 +1,206 @@
 pipeline {
     agent {
         kubernetes {
+            defaultContainer 'builder'
             yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-    name: kaniko
-spec:
-    restartPolicy: Never
-    volumes:
-    - name: kaniko-secret
-      secret:
-            secretName: kaniko-secret
-    containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-        - /busybox/cat
-      tty: true
-      volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker
-    - name: kaniko-2
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-        - /busybox/cat
-      tty: true
-      volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker
-    - name: kaniko-3
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-        - /busybox/cat
-      tty: true
-      volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker
-"""
+            apiVersion: v1
+            kind: Pod
+            spec:
+              containers:
+              - name: builder
+                image: divyanshujain11/jenkins-agent:latest
+                securityContext:
+                  privileged: true
+                volumeMounts:
+                - name: builder-storage
+                  mountPath: /var/lib/docker
+              volumes:
+              - name: builder-storage
+                emptyDir: {}
+            """
         }
     }
 
     environment {
         DOCKER_HUB_REPO = 'divyanshujain11'
         BUILD_DATE = sh(script: 'date "+%Y-%m-%d"', returnStdout: true).trim()
+         REPO_NAME="vote"
+        Git_clone_repo_url= "https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkinsfile-${REPO_NAME}.git"
+        Git_helm_repo_url= "https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git"
+        branch_name= "main"
+        credentialsId= "github"
+        user_email= "divyanshu.jain@squareops.com"
+        user_name= "Divyanshu Jain"
+        TAR_IMAGE_NAME="${DOCKER_HUB_REPO}-votingapp-${REPO_NAME}"
+        IMAGE_NAME="${DOCKER_HUB_REPO}/votingapp-${REPO_NAME}"
+       
     }
 
-    stages {
-        stage('Clone in Kaniko Container') {
+   stages {
+         stage('Clone sources') {
+            steps {
+                git branch: "${branch_name}", credentialsId: "${credentialsId}", url: "${Git_clone_repo_url}"
+                echo "Repository cloned inside Kaniko container"
+            }
+        }
+
+        stage('Scan Code with Gitleaks and Generate Report') {
+            steps {
+                sh 'gitleaks --path ./${REPO_NAME} --report ${REPO_NAME}-detect-secrets-report.json --format JSON'
+            }
+        }
+
+        stage('Check for Secrets') {
             steps {
                 script {
-                    container('kaniko') {
-                        git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-docker-build-push-jenkins.git'
-                        echo "Repository cloned inside Kaniko container"
+                    def reportFile = readFile("${REPO_NAME}-detect-secrets-report.json")
+                    if (reportFile.trim().isEmpty()) {
+                        echo "No secrets detected. Pipeline continues."
+                    } else {
+                        error "Secrets detected in the code. Aborting the pipeline."
                     }
                 }
             }
         }
-         stage('Build and Push vote Images') {
+
+        stage('SonarQube analysis') {
+            environment {
+                SCANNER_HOME = tool 'SonarQubeScanner';    
+            }
+
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh "${SCANNER_HOME}/bin/sonar-scanner"
+                }
+                echo 'SonarQube Quality gate'
+                timeout(time: 1, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('create tar image for scanning in Kaniko Container') {
+            agent {
+                kubernetes {
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    metadata:
+                      name: kaniko
+                    spec:
+                      restartPolicy: Never
+                      containers:
+                      - name: kaniko
+                        image: gcr.io/kaniko-project/executor:debug
+                        command:
+                        - /busybox/cat
+                        tty: true
+                    """
+                }
+            }
             steps {
                 script {
                     container('kaniko') {
-                        // Build and push Docker image using Kaniko
-                        sh "/kaniko/executor --dockerfile `pwd`/vote/Dockerfile --context=`pwd` --destination=${DOCKER_HUB_REPO}/votingapp-vote:${BUILD_NUMBER}"
+                        git branch: "${branch_name}", credentialsId: "${credentialsId}", url: "${Git_clone_repo_url}"
+                        echo "Repository cloned inside Kaniko container"
+                        sh '''/kaniko/executor --dockerfile `pwd`/${REPO_NAME}/Dockerfile --context=`pwd` --destination=${IMAGE_NAME}:${BUILD_NUMBER}-${BUILD_DATE} --no-push --oci-layout-path `pwd` --tarPath `pwd`/${TAR_IMAGE_NAME}-${BUILD_NUMBER}.tar
+                           '''
+                        echo "Tar result-image build completed"
+                        sh 'ls'
+                    }
+                     stash includes: '*.tar', name: 'image'    
+                }
+            }
+        }
+        stage('Scan Docker Image'){
+            steps {
+                    unstash 'image' 
+                    sh 'ls'
+                    sh 'trivy image --ignore-unfixed -f json -o scan-report.json --input ${TAR_IMAGE_NAME}-${BUILD_NUMBER}.tar'
+                    sh 'ls'
+                    sh 'cat scan-report.json'
+
+            }
+        }
+         stage('Clone in Kaniko Container') {
+            agent {
+                kubernetes {
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    metadata:
+                      name: kaniko
+                    spec:
+                      restartPolicy: Never
+                      containers:
+                      - name: kaniko
+                        image: gcr.io/kaniko-project/executor:debug
+                        command:
+                        - /busybox/cat
+                        tty: true
+
+                    """
+                }
+            }
+            steps {
+                script {
+                    container('kaniko') {
+                        git branch: "${branch_name}", credentialsId: "${credentialsId}", url: "${Git_clone_repo_url}"
+                        echo "Repository cloned inside Kaniko container"
+                       withCredentials([file(credentialsId: 'dockerfile', variable: 'DOCKER_CONFIG_JSON')] ) {
+                        sh 'cp $DOCKER_CONFIG_JSON /kaniko/.docker/config.json'
+                        sh "/kaniko/executor --dockerfile `pwd`/${REPO_NAME}/Dockerfile --context=`pwd` --destination=${IMAGE_NAME}:${BUILD_NUMBER} "
+                    }
                         echo "Image vote build completed"
                     }
                 }
             }
         }
-        stage('Helm Values Update and Push') {
-          agent {
-            kubernetes {
-                yaml """
-                apiVersion: v1
-                kind: Pod
-                metadata:
-                    name: builder
-                spec:
-                  restartPolicy: Never
-                  volumes:
-                    - name: builder-storage
-                      emptyDir: {}
-                  containers:
-                  - name: builder
-                    image: squareops/jenkins-build-agent:v3
-                    securityContext:
-                      privileged: true
-                    volumeMounts:
-                      - name: builder-storage
-                        mountPath: /var/lib/docker
-                """
-            }
-          }
-          steps {
-            script {
-                container('builder') {
-                    // Clone Git repo with credentials
-                    
-                   
-                    git branch: 'main', credentialsId: 'github', url: 'https://github.com/divyanshujainSquareops/voting_application-helm-argocd.git'
-                     withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD')]) {
-                        sh '''
-                            echo "BUILD_DATE: ${BUILD_DATE}"
-                            cd ./vote/
-                            yq e -i '.image.tag = "'$BUILD_NUMBER'"' values.yaml
-                            cat values.yaml
-                            cd ..
 
-                            ls -la
-                            pwd
-                            git config --global --add safe.directory /home/jenkins/agent/workspace/${JOB_NAME}
-                            git config --global user.email "divyanshu.jain@squareops.com"
-                            git config --global user.name "Divyanshu jain"
-                            git add .
-                            git commit -m "commit=\$JOB_NAME-\$BUILD_NUMBER-\$BUILD_DATE"
-                            git push https://${USER_NAME}:${PASSWORD}@github.com/divyanshujainSquareops/voting_application-helm-argocd.git main
-                        '''                      
+        stage('Helm Values Update and Push') {
+            agent {
+                kubernetes {
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    metadata:
+                      name: builder
+                    spec:
+                      restartPolicy: Never
+                      volumes:
+                      - name: builder-storage
+                        emptyDir: {}
+                      containers:
+                      - name: builder
+                        image: squareops/jenkins-build-agent:v3
+                        securityContext:
+                          privileged: true
+                        volumeMounts:
+                        - name: builder-storage
+                          mountPath: /var/lib/docker
+                    """
+                }
+            }
+            steps {
+                script {
+                    container('builder') {
+                        git branch: "${branch_name}", credentialsId: "${credentialsId}", url: "${Git_helm_repo_url}"
+                        withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GIT_USER_NAME', passwordVariable: 'PASSWORD')]) {
+                            sh '''
+                                cd ./${REPO_NAME}/
+                                yq e -i '.image.tag = "'$BUILD_NUMBER'"' values.yaml
+                                cd ..
+                                git config --global --add safe.directory /home/jenkins/agent/workspace/${JOB_NAME}
+                                git config --global user.email ${user_email}
+                                git config --global user.name ${user_name}
+                                git add .
+                                git commit -m "commit=${JOB_NAME}-${BUILD_NUMBER}-${BUILD_DATE}"
+                                git push https://${GIT_USER_NAME}:${PASSWORD}@github.com/divyanshujainSquareops/voting_application-helm-argocd.git main
+                            '''                      
+                        }
                     }
                 }
             }
-          }
         }
     }
 }
