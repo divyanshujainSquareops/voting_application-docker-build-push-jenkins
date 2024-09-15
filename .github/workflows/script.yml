@@ -24,9 +24,9 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install AWS CLI , ufw and jq
-      run: |
-        sudo apt-get install -y awscli jq ca-certificates ufw
+    # - name: Install AWS CLI , ufw and jq
+    #   run: |
+    #     sudo apt-get install -y awscli jq ca-certificates ufw
 
     # - name: Configure firewall
     #   env:
@@ -77,9 +77,9 @@ jobs:
 
     - name: Upload tarball to S3-compatible blob store
       env:
-        AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT}}
+        AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT }}
       run: |
-        echo "$AWS_ENDPOINT_URL"
+        echo "S3 Endpoint URL: $AWS_ENDPOINT_URL"
 #     - name: Download tarball from S3-compatible blob store for checksum verification
 #       env:
 #         AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
