@@ -79,7 +79,7 @@ jobs:
       env:
         AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT}}
       run: |
-        echo $AWS_ENDPOINT_URL
+        echo "$AWS_ENDPOINT_URL"
 #     - name: Download tarball from S3-compatible blob store for checksum verification
 #       env:
 #         AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
