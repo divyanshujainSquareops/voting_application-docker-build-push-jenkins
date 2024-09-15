@@ -33,26 +33,23 @@ jobs:
         WHITELISTED_IPS: ${{ secrets.WHITELISTED_IPS }}
       run: |
         IFS=',' read -ra IP_ARRAY <<< "$WHITELISTED_IPS"
-        echo "Whitelisted IPs:"
         for ip in "${IP_ARRAY[@]}"; do
-          echo "$ip"  # Print each IP
           sudo ufw allow from $ip
         done
         sudo ufw --force enable
+    # - name: Check if repos.json exists
+    #   run: |
+    #     if [ ! -f repos.json ]; then
+    #       echo "Error: repos.json file not found in the root directory."
+    #       exit 1
+    #     fi
 
-    # # - name: Check if repos.json exists
-    # #   run: |
-    # #     if [ ! -f repos.json ]; then
-    # #       echo "Error: repos.json file not found in the root directory."
-    # #       exit 1
-    # #     fi
-
-    # # - name: Load repository list
-    # #   id: load_repos
-    # #   run: |
-    # #     echo "Load repository list from root directory"
-    # #     repos=$(cat repos.json | jq -r '.repositories[]' | tr '\n' ' ')
-    # #     echo "REPOS=$repos" >> $GITHUB_ENV
+    # - name: Load repository list
+    #   id: load_repos
+    #   run: |
+    #     echo "Load repository list from root directory"
+    #     repos=$(cat repos.json | jq -r '.repositories[]' | tr '\n' ' ')
+    #     echo "REPOS=$repos" >> $GITHUB_ENV
  
     # - name: Configure Git to use GitHub token
     #   run: |
@@ -78,57 +75,55 @@ jobs:
     #     sha256sum ${{ env.TAR_NAME }} | awk '{ print $1 }' > checksum_local.txt
     #     cat checksum_local.txt
 
-    # - name: Upload tarball to S3-compatible blob store
-    #   env:
-    #     AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
-    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.IRON_MOUNTAIN_SECRET_ACCESS_KEY }}
-    #     AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT}}
-    #   run: |
-    #     aws s3 cp ${{ env.TAR_NAME }} s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/${{ env.TAR_NAME }} --endpoint-url $AWS_ENDPOINT_URL
-    # - name: Download tarball from S3-compatible blob store for checksum verification
-    #   env:
-    #     AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
-    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.IRON_MOUNTAIN_SECRET_ACCESS_KEY }}
-    #     AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT }}
-    #   run: |
-    #     aws s3 cp s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/${{ env.TAR_NAME }} downloaded_${{ env.TAR_NAME }} --endpoint-url $AWS_ENDPOINT_URL
+    - name: Upload tarball to S3-compatible blob store
+      env:
+        AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT}}
+      run: |
+        echo $AWS_ENDPOINT_URL
+#     - name: Download tarball from S3-compatible blob store for checksum verification
+#       env:
+#         AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
+#         AWS_SECRET_ACCESS_KEY: ${{ secrets.IRON_MOUNTAIN_SECRET_ACCESS_KEY }}
+#         AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT }}
+#       run: |
+#         aws s3 cp s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/${{ env.TAR_NAME }} downloaded_${{ env.TAR_NAME }} --endpoint-url $AWS_ENDPOINT_URL
 
-    # - name: Calculate downloaded tarball checksum
-    #   id: calculate_remote_checksum
-    #   run: |
-    #     sha256sum downloaded_${{ env.TAR_NAME }} | awk '{ print $1 }' > checksum_remote.txt
-    #     cat checksum_remote.txt
+#     - name: Calculate downloaded tarball checksum
+#       id: calculate_remote_checksum
+#       run: |
+#         sha256sum downloaded_${{ env.TAR_NAME }} | awk '{ print $1 }' > checksum_remote.txt
+#         cat checksum_remote.txt
 
-    # - name: Compare checksums
-    #   run: |
-    #     local_checksum=$(cat checksum_local.txt)
-    #     remote_checksum=$(cat checksum_remote.txt)
+#     - name: Compare checksums
+#       run: |
+#         local_checksum=$(cat checksum_local.txt)
+#         remote_checksum=$(cat checksum_remote.txt)
 
-    #     echo "Local checksum: $local_checksum"
-    #     echo "Remote checksum: $remote_checksum"
+#         echo "Local checksum: $local_checksum"
+#         echo "Remote checksum: $remote_checksum"
 
-    #     if [ "$local_checksum" = "$remote_checksum" ]; then
-    #       echo "Checksums match!"
-    #     else
-    #       echo "Error: Checksums do not match!"
-    #       exit 1
-    #     fi
+#         if [ "$local_checksum" = "$remote_checksum" ]; then
+#           echo "Checksums match!"
+#         else
+#           echo "Error: Checksums do not match!"
+#           exit 1
+#         fi
 
-    # - name: Delete previous backups from S3-compatible blob store
-    #   env:
-    #     AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
-    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.IRON_MOUNTAIN_SECRET_ACCESS_KEY }}
-    #     AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT }}
-    #   run: |
-    #     aws s3 ls s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/ --recursive --endpoint-url $AWS_ENDPOINT_URL | grep .tar.gz | awk '{print $4}' | xargs -I {} aws s3 rm s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/{} --endpoint-url $AWS_ENDPOINT_URL
+#     - name: Delete previous backups from S3-compatible blob store
+#       env:
+#         AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
+#         AWS_SECRET_ACCESS_KEY: ${{ secrets.IRON_MOUNTAIN_SECRET_ACCESS_KEY }}
+#         AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT }}
+#       run: |
+#         aws s3 ls s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/ --recursive --endpoint-url $AWS_ENDPOINT_URL | grep .tar.gz | awk '{print $4}' | xargs -I {} aws s3 rm s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/{} --endpoint-url $AWS_ENDPOINT_URL
 
-    #- name: Send error notification to Slack
-     # if: failure()
-      #env:
-       # SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-        #SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL || 'infrastructure' }}
-      #run: |
-       # curl -X POST -H "Authorization: Bearer $SLACK_TOKEN" \
-        #  -H 'Content-type: application/json' \
-         # --data '{"channel":"'"$SLACK_CHANNEL"'","text":"Backup job failed in GitHub Actions workflow. Check the logs at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' \
- #         https://slack.com/api/chat.postMessage
+#     #- name: Send error notification to Slack
+#      # if: failure()
+#       #env:
+#        # SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+#         #SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL || 'infrastructure' }}
+#       #run: |
+#        # curl -X POST -H "Authorization: Bearer $SLACK_TOKEN" \
+#         #  -H 'Content-type: application/json' \
+#          # --data '{"channel":"'"$SLACK_CHANNEL"'","text":"Backup job failed in GitHub Actions workflow. Check the logs at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' \
+#  #         https://slack.com/api/chat.postMessage
