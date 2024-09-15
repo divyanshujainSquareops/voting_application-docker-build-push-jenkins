@@ -1,0 +1,134 @@
+name: Weekly GitHub Repos Backup
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Runs every Sunday at midnight UTC
+  workflow_dispatch: # For manual runs
+  push: 
+    branches:
+      - 'main' # Trigger the workflow on push to the main branch
+     
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    env:
+      TAR_NAME: repos_backup_${{ github.run_id }}.tar.gz # Set tarball name using GitHub run ID
+      #S3_BUCKET: repos-backup-store # Replace with your bucket name
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install AWS CLI , ufw and jq
+      run: |
+        sudo apt-get install -y awscli jq ca-certificates ufw
+
+    - name: Configure firewall
+      env:
+        WHITELISTED_IPS: ${{ secrets.WHITELISTED_IPS }}
+      run: |
+        IFS=',' read -ra IP_ARRAY <<< "$WHITELISTED_IPS"
+        echo "Whitelisted IPs:"
+        for ip in "${IP_ARRAY[@]}"; do
+          echo "$ip"  # Print each IP
+          sudo ufw allow from $ip
+        done
+        sudo ufw --force enable
+
+    # # - name: Check if repos.json exists
+    # #   run: |
+    # #     if [ ! -f repos.json ]; then
+    # #       echo "Error: repos.json file not found in the root directory."
+    # #       exit 1
+    # #     fi
+
+    # # - name: Load repository list
+    # #   id: load_repos
+    # #   run: |
+    # #     echo "Load repository list from root directory"
+    # #     repos=$(cat repos.json | jq -r '.repositories[]' | tr '\n' ' ')
+    # #     echo "REPOS=$repos" >> $GITHUB_ENV
+ 
+    # - name: Configure Git to use GitHub token
+    #   run: |
+    #     git config --global url."https://${{ secrets.MY_GITHUB_TOKEN_1 }}@github.com/".insteadOf "https://github.com/"
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN_1 }}
+      
+    # - name: Shallow clone repositories
+    #   run: |
+    #     mkdir repos_backup
+    #     for repo in $REPOS; do
+    #       echo "Cloning $repo"
+    #       git clone --depth 1 "$repo" repos_backup/$(basename "$repo" .git)
+    #     done
+
+    # - name: Archive repositories into a tarball
+    #   run: |
+    #     tar -czf ${{ env.TAR_NAME }} -C repos_backup .
+
+    # - name: Calculate local tarball checksum
+    #   id: calculate_local_checksum
+    #   run: |
+    #     sha256sum ${{ env.TAR_NAME }} | awk '{ print $1 }' > checksum_local.txt
+    #     cat checksum_local.txt
+
+    # - name: Upload tarball to S3-compatible blob store
+    #   env:
+    #     AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
+    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.IRON_MOUNTAIN_SECRET_ACCESS_KEY }}
+    #     AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT}}
+    #   run: |
+    #     aws s3 cp ${{ env.TAR_NAME }} s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/${{ env.TAR_NAME }} --endpoint-url $AWS_ENDPOINT_URL
+    # - name: Download tarball from S3-compatible blob store for checksum verification
+    #   env:
+    #     AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
+    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.IRON_MOUNTAIN_SECRET_ACCESS_KEY }}
+    #     AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT }}
+    #   run: |
+    #     aws s3 cp s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/${{ env.TAR_NAME }} downloaded_${{ env.TAR_NAME }} --endpoint-url $AWS_ENDPOINT_URL
+
+    # - name: Calculate downloaded tarball checksum
+    #   id: calculate_remote_checksum
+    #   run: |
+    #     sha256sum downloaded_${{ env.TAR_NAME }} | awk '{ print $1 }' > checksum_remote.txt
+    #     cat checksum_remote.txt
+
+    # - name: Compare checksums
+    #   run: |
+    #     local_checksum=$(cat checksum_local.txt)
+    #     remote_checksum=$(cat checksum_remote.txt)
+
+    #     echo "Local checksum: $local_checksum"
+    #     echo "Remote checksum: $remote_checksum"
+
+    #     if [ "$local_checksum" = "$remote_checksum" ]; then
+    #       echo "Checksums match!"
+    #     else
+    #       echo "Error: Checksums do not match!"
+    #       exit 1
+    #     fi
+
+    # - name: Delete previous backups from S3-compatible blob store
+    #   env:
+    #     AWS_ACCESS_KEY_ID: ${{ secrets.IRON_MOUNTAIN_ACCESS_KEY_ID }}
+    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.IRON_MOUNTAIN_SECRET_ACCESS_KEY }}
+    #     AWS_ENDPOINT_URL: ${{ secrets.IRON_MOUNTAIN_BUCKET_ENDPOINT }}
+    #   run: |
+    #     aws s3 ls s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/ --recursive --endpoint-url $AWS_ENDPOINT_URL | grep .tar.gz | awk '{print $4}' | xargs -I {} aws s3 rm s3://${{ secrets.IRON_MOUNTAIN_BUCKET_NAME }}/${{ github.event.repository.name }}/${{ github.ref_name }}/{} --endpoint-url $AWS_ENDPOINT_URL
+
+    #- name: Send error notification to Slack
+     # if: failure()
+      #env:
+       # SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+        #SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL || 'infrastructure' }}
+      #run: |
+       # curl -X POST -H "Authorization: Bearer $SLACK_TOKEN" \
+        #  -H 'Content-type: application/json' \
+         # --data '{"channel":"'"$SLACK_CHANNEL"'","text":"Backup job failed in GitHub Actions workflow. Check the logs at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' \
+ #         https://slack.com/api/chat.postMessage
