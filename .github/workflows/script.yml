@@ -28,15 +28,15 @@ jobs:
       run: |
         sudo apt-get install -y awscli jq ca-certificates ufw
 
-    - name: Configure firewall
-      env:
-        WHITELISTED_IPS: ${{ secrets.WHITELISTED_IPS }}
-      run: |
-        IFS=',' read -ra IP_ARRAY <<< "$WHITELISTED_IPS"
-        for ip in "${IP_ARRAY[@]}"; do
-          sudo ufw allow from $ip
-        done
-        sudo ufw --force enable
+    # - name: Configure firewall
+    #   env:
+    #     WHITELISTED_IPS: ${{ secrets.WHITELISTED_IPS }}
+    #   run: |
+    #     IFS=',' read -ra IP_ARRAY <<< "$WHITELISTED_IPS"
+    #     for ip in "${IP_ARRAY[@]}"; do
+    #       sudo ufw allow from $ip
+    #     done
+    #     sudo ufw --force enable
     # - name: Check if repos.json exists
     #   run: |
     #     if [ ! -f repos.json ]; then
